@@ -1,10 +1,10 @@
-// actions/food.actions.ts
 'use server';
 
 import { connectDB } from '@/lib/db';
 import FoodItem from '../models/FoodItem';
 import { revalidatePath } from 'next/cache';
 import { CreateFoodItemInput, UpdateFoodItemInput } from '../types/food';
+import mongoose from 'mongoose'; // ✅ Add this import
 
 export async function getFoodItems() {
     try {
@@ -22,7 +22,17 @@ export async function getFoodItems() {
 export async function getFoodItemsByRestaurant(restaurantId: string) {
     try {
         await connectDB();
-        const foodItems = await FoodItem.find({ restaurant: restaurantId }).lean();
+
+        // ✅ Validate and convert restaurantId to ObjectId
+        if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+            console.error('Invalid restaurant ID:', restaurantId);
+            return [];
+        }
+
+        const foodItems = await FoodItem.find({
+            restaurant: new mongoose.Types.ObjectId(restaurantId)
+        }).lean();
+
         return JSON.parse(JSON.stringify(foodItems));
     } catch (error) {
         console.error('Error fetching restaurant food items:', error);
@@ -82,7 +92,8 @@ export async function createFoodItem(data: CreateFoodItemInput) {
 //             error: error.message || 'Failed to update food item'
 //         };
 //     }
-// }   
+// }
+
 // export async function deleteFoodItem(foodItemId: string) {
 //     try {
 //         await connectDB();
