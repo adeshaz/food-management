@@ -1,4 +1,3 @@
-// app/api/orders/[id]/cancel/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Order from '@/models/Order';
@@ -6,10 +5,11 @@ import { getCurrentUserFromRequest } from '@/lib/auth';
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        console.log('🟢 CANCEL ORDER API called for:', params.id);
+        const { id: orderId } = await params; // ✅ Await the promise to get the ID
+        console.log('🟢 CANCEL ORDER API called for:', orderId);
 
         await connectToDatabase();
 
@@ -23,7 +23,6 @@ export async function POST(
         }
 
         const { reason } = await request.json();
-        const orderId = params.id;
 
         // Find the order
         const order = await Order.findById(orderId);
