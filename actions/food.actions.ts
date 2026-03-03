@@ -4,7 +4,7 @@ import { connectDB } from '@/lib/db';
 import FoodItem from '../models/FoodItem';
 import { revalidatePath } from 'next/cache';
 import { CreateFoodItemInput, UpdateFoodItemInput } from '../types/food';
-import mongoose from 'mongoose'; // ✅ Add this import
+import mongoose from 'mongoose';
 
 export async function getFoodItems() {
     try {
@@ -23,14 +23,16 @@ export async function getFoodItemsByRestaurant(restaurantId: string) {
     try {
         await connectDB();
 
-        // ✅ Validate and convert restaurantId to ObjectId
+        // Validate restaurantId is a valid ObjectId
         if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
             console.error('Invalid restaurant ID:', restaurantId);
             return [];
         }
 
+        // Use the string directly – Mongoose will cast it to ObjectId automatically.
+        // Cast to any to satisfy TypeScript's strict type checking.
         const foodItems = await FoodItem.find({
-            restaurant: new mongoose.Types.ObjectId(restaurantId)
+            restaurant: restaurantId as any
         }).lean();
 
         return JSON.parse(JSON.stringify(foodItems));
@@ -63,60 +65,3 @@ export async function createFoodItem(data: CreateFoodItemInput) {
         };
     }
 }
-
-// export async function updateFoodItem(foodItemId: string, data: UpdateFoodItemInput) {
-//     try {
-//         await connectDB();
-//         const foodItem = await FoodItem.findByIdAndUpdate(foodItemId, data, { new: true });
-
-//         if (!foodItem) {
-//             return {
-//                 success: false,
-//                 error: 'Food item not found'
-//             };
-//         }
-
-//         revalidatePath('/foods');
-//         revalidatePath(`/admin/foods/${foodItemId}`);
-//         revalidatePath(`/restaurants/${foodItem.restaurant}`);
-
-//         return {
-//             success: true,
-//             data: JSON.parse(JSON.stringify(foodItem)),
-//             message: 'Food item updated successfully'
-//         };
-//     } catch (error: any) {
-//         console.error('Error updating food item:', error);
-//         return {
-//             success: false,
-//             error: error.message || 'Failed to update food item'
-//         };
-//     }
-// }
-
-// export async function deleteFoodItem(foodItemId: string) {
-//     try {
-//         await connectDB();
-//         const foodItem = await FoodItem.findByIdAndDelete(foodItemId);
-//         if (!foodItem) {
-//             return {
-//                 success: false,
-//                 error: 'Food item not found'
-//             };
-//         }
-//         revalidatePath('/foods');
-//         revalidatePath('/admin/foods');
-//         revalidatePath(`/restaurants/${foodItem.restaurant}`);
-//         return {
-//             success: true,
-//             message: 'Food item deleted successfully'
-//         };
-//     }
-//     catch (error: any) {
-//         console.error('Error deleting food item:', error);
-//         return {
-//             success: false,
-//             error: error.message || 'Failed to delete food item'
-//         };
-//     }
-// }
