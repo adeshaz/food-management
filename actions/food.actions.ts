@@ -23,14 +23,12 @@ export async function getFoodItemsByRestaurant(restaurantId: string) {
     try {
         await connectDB();
 
-        // Validate restaurantId is a valid ObjectId
         if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
             console.error('Invalid restaurant ID:', restaurantId);
             return [];
         }
 
-        // Use the string directly – Mongoose will cast it to ObjectId automatically.
-        // Cast to any to satisfy TypeScript's strict type checking.
+        // Cast restaurantId to any to satisfy TypeScript
         const foodItems = await FoodItem.find({
             restaurant: restaurantId as any
         }).lean();
@@ -46,7 +44,8 @@ export async function createFoodItem(data: CreateFoodItemInput) {
     try {
         await connectDB();
 
-        const foodItem = await FoodItem.create(data);
+        // Cast data to any because Mongoose accepts string IDs
+        const foodItem = await FoodItem.create(data as any);
 
         revalidatePath('/foods');
         revalidatePath('/admin/foods');
@@ -65,3 +64,5 @@ export async function createFoodItem(data: CreateFoodItemInput) {
         };
     }
 }
+
+// The commented functions remain unchanged...
