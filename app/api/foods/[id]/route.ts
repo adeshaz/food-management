@@ -5,12 +5,13 @@ import mongoose from 'mongoose';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params; // ✅ await the promise
         await connectToDatabase();
 
-        const food = await FoodItem.findById(params.id).lean();
+        const food = await FoodItem.findById(id).lean();
 
         if (!food) {
             return NextResponse.json({
@@ -55,15 +56,15 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params; // ✅ await
         await connectToDatabase();
 
         const body = await request.json();
 
-        // Validate ID
-        if (!mongoose.Types.ObjectId.isValid(params.id)) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return NextResponse.json({
                 success: false,
                 message: 'Invalid food ID'
@@ -71,7 +72,7 @@ export async function PUT(
         }
 
         const updatedFood = await FoodItem.findByIdAndUpdate(
-            params.id,
+            id,
             {
                 ...body,
                 updatedAt: new Date()
@@ -103,15 +104,15 @@ export async function PUT(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params; // ✅ await
         await connectToDatabase();
 
         const body = await request.json();
 
-        // Validate ID
-        if (!mongoose.Types.ObjectId.isValid(params.id)) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return NextResponse.json({
                 success: false,
                 message: 'Invalid food ID'
@@ -119,7 +120,7 @@ export async function PATCH(
         }
 
         const updatedFood = await FoodItem.findByIdAndUpdate(
-            params.id,
+            id,
             {
                 available: body.available !== undefined ? body.available : body.isAvailable,
                 updatedAt: new Date()
@@ -149,15 +150,15 @@ export async function PATCH(
     }
 }
 
-
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params; // ✅ await
         await connectToDatabase();
 
-        const deletedFood = await FoodItem.findByIdAndDelete(params.id);
+        const deletedFood = await FoodItem.findByIdAndDelete(id);
 
         if (!deletedFood) {
             return NextResponse.json({
