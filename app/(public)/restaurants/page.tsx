@@ -42,7 +42,7 @@ interface Restaurant {
     };
     openingHours: {
         general?: string;
-        [key: string]: string;
+        [key: string]: string | undefined; // Allow undefined for any extra keys
     };
     images: string[];
     rating: number;
