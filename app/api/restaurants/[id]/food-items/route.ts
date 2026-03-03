@@ -1,16 +1,15 @@
-// app/api/restaurants/[id]/food-items/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import FoodItem from '@/models/FoodItem';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectToDatabase();
 
-        const restaurantId = params.id;
+        const { id: restaurantId } = await params; // ✅ await the promise to get the ID
 
         const foodItems = await FoodItem.find({
             restaurants: restaurantId,
