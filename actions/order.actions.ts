@@ -18,14 +18,14 @@ export async function createOrder(orderData: any) {
 
         await connectDB();
 
-        const order = await Order.create({
+        // 👇 Cast to `any` to avoid TypeScript thinking it's an array
+        const order = (await Order.create({
             ...orderData,
             user: user.id,
             orderNumber: undefined, // default from schema
-            totalAmount: orderData.totalAmount,       // ensure this exists
-            deliveryAddress: orderData.deliveryAddress // ensure this exists
-        });
-
+            totalAmount: orderData.totalAmount,
+            deliveryAddress: orderData.deliveryAddress
+        })) as any;
 
         // Clear the user's cart
         await Cart.findOneAndDelete({ user: user.id });
@@ -35,7 +35,7 @@ export async function createOrder(orderData: any) {
         if (restaurant) {
             await sendOrderConfirmation(
                 user.email,
-                order.orderNumber,
+                order.orderNumber,   // ✅ now TypeScript knows it exists
                 user.name,
                 restaurant.name,
                 order.totalAmount,
@@ -56,6 +56,8 @@ export async function createOrder(orderData: any) {
         return { success: false, error: error.message || 'Failed to place order' };
     }
 }
+
+// ... rest of the file (getOrderByNumber, getUserOrders, etc.) remains exactly as you have it
 
 export async function getOrderByNumber(orderNumber: string) {  
     try {
