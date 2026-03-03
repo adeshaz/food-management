@@ -77,8 +77,9 @@ export default async function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {restaurants.slice(0, 6).map((restaurant: any) => ({/* 👈 explicit any added */ }
-                            < RestaurantCard key = { restaurant._id } restaurant = { restaurant } />
+                        {/* Use 'any' temporarily – fix with proper type later */}
+                        {restaurants.slice(0, 6).map((restaurant: any) => (
+                            <RestaurantCard key={restaurant._id} restaurant={restaurant} />
                         ))}
                     </div>
 
