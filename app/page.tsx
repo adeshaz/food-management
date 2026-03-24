@@ -155,8 +155,8 @@ export default function Home() {
     { value: "24/7", label: "Support", icon: <Phone className="h-5 w-5" /> },
     { value: "0", label: "Happy Customers", icon: <Users className="h-5 w-5" /> }
   ]);
-
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const { itemCount } = useCart();
   const cartCount = itemCount;
 
