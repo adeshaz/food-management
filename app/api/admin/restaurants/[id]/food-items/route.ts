@@ -9,6 +9,75 @@ interface Context {
     params: Promise<{ id: string }>;
 }
 
+export async function POST(request: NextRequest, context: Context) {
+    try {
+        const { id } = await context.params;
+
+        console.log('➕ ADMIN POST /api/admin/restaurants/[id]/food-items called:', { id });
+
+        // Check admin authentication
+        const user = await getCurrentUserFromRequest(request);
+        if (!user || user.role !== 'admin') {
+            return NextResponse.json({
+                success: false,
+                error: 'Admin access required'
+            }, { status: 403 });
+        }
+
+        await connectToDatabase();
+
+        const body = await request.json();
+
+        // Validate required fields
+        const requiredFields = ['name', 'price', 'category'];
+        for (const field of requiredFields) {
+            if (!body[field]) {
+                return NextResponse.json({
+                    success: false,
+                    error: `${field} is required`
+                }, { status: 400 });
+            }
+        }
+
+        // Check if restaurant exists – cast id to any
+        const restaurantExists = await Restaurant.exists({ _id: id as any });
+        if (!restaurantExists) {
+            return NextResponse.json({
+                success: false,
+                error: 'Restaurant not found'
+            }, { status: 404 });
+        }
+
+        // Set default values – restaurant field cast to any
+        const foodItemData = {
+            ...body,
+            restaurant: id as any,
+            restaurantName: body.restaurantName || 'Unknown',
+            isAvailable: body.isAvailable !== undefined ? body.isAvailable : true,
+            images: body.images || ['/images/foods/default.jpg'],
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+
+        // Create food item – cast result to any
+        const foodItem = await FoodItem.create(foodItemData) as any;
+
+        console.log(`✅ Admin created food item: ${foodItem.name} for restaurant ${id}`);
+
+        return NextResponse.json({
+            success: true,
+            message: 'Food item created successfully',
+            data: foodItem
+        }, { status: 201 });
+    } catch (error: any) {
+        console.error('🔴 ADMIN CREATE FOOD ITEM ERROR:', error.message);
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to create food item: ' + error.message
+        }, { status: 500 });
+    }
+}
+
 export async function GET(request: NextRequest, context: Context) {
     try {
         const { id } = await context.params;
@@ -83,77 +152,6 @@ export async function GET(request: NextRequest, context: Context) {
         return NextResponse.json({
             success: false,
             error: 'Failed to fetch food items: ' + error.message
-        }, { status: 500 });
-    }
-}
-
-export async function POST(request: NextRequest, context: Context) {
-    try {
-        const { id } = await context.params;
-
-        console.log('➕ ADMIN POST /api/admin/restaurants/[id]/food-items called:', { id });
-
-        // Check admin authentication
-        const user = await getCurrentUserFromRequest(request);
-        if (!user || user.role !== 'admin') {
-            return NextResponse.json({
-                success: false,
-                error: 'Admin access required'
-            }, { status: 403 });
-        }
-
-        await connectToDatabase();
-
-        const body = await request.json();
-
-        // Validate required fields
-        const requiredFields = ['name', 'price', 'category'];
-        for (const field of requiredFields) {
-            if (!body[field]) {
-                return NextResponse.json({
-                    success: false,
-                    error: `${field} is required`
-                }, { status: 400 });
-            }
-        }
-
-        // Check if restaurant exists – cast id to any
-        const restaurantExists = await Restaurant.exists({ _id: id as any });
-
-        if (!restaurantExists) {
-            return NextResponse.json({
-                success: false,
-                error: 'Restaurant not found'
-            }, { status: 404 });
-        }
-
-        // Set default values – restaurant field cast to any
-        const foodItemData = {
-            ...body,
-            restaurant: id as any,
-            restaurantName: body.restaurantName || 'Unknown',
-            isAvailable: body.isAvailable !== undefined ? body.isAvailable : true,
-            images: body.images || ['/images/foods/default.jpg'],
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-
-        // Create food item
-        const foodItem = await FoodItem.create(foodItemData);
-
-        console.log(`✅ Admin created food item: ${foodItem.name} for restaurant ${id}`);
-
-        return NextResponse.json({
-            success: true,
-            message: 'Food item created successfully',
-            data: foodItem
-        }, { status: 201 });
-
-    } catch (error: any) {
-        console.error('🔴 ADMIN CREATE FOOD ITEM ERROR:', error.message);
-        return NextResponse.json({
-            success: false,
-            error: 'Failed to create food item: ' + error.message
         }, { status: 500 });
     }
 }
