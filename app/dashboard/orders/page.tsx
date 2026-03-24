@@ -75,13 +75,15 @@ export default function OrdersPage() {
 
                 if (data.success && data.data && Array.isArray(data.data)) {
                     // Process orders for consistent status
-                    const processedOrders = data.data.map(order => ({
+                    const processedOrders = data.data.map((order: any) => ({   // ✅ Added type annotation
                         ...order,
+                        // Ensure `id` exists (fallback to `_id`)
+                        id: order.id || order._id,
                         status: (order.status || 'pending').toLowerCase(),
                         date: order.date || new Date(order.createdAt).toLocaleDateString(),
                         time: order.time || new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                         // Add fallback values
-                        orderNumber: order.orderNumber || `ORD-${order.id.slice(-6)}`,
+                        orderNumber: order.orderNumber || `ORD-${((order.id || order._id) || '').slice(-6)}`,
                         restaurant: order.restaurant?.name || 'Restaurant',
                         items: order.items || [],
                         total: order.total || order.totalAmount || 0,
