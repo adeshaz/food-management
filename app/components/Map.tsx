@@ -176,25 +176,36 @@ const FoodMap: React.FC<FoodMapProps> = ({ restaurants }) => {
                 <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
                 {restaurants.map((restaurant) => {
-                    // Get coordinates safely
-                    const lat = restaurant.address?.coordinates?.lat ?? restaurant.location?.coordinates?.lat;
-                    const lng = restaurant.address?.coordinates?.lng ?? restaurant.location?.coordinates?.lng;
-                    if (!lat || !lng) return null;
+                    // ✅ Use only address.coordinates – remove location fallback
+                    const lat = restaurant.address?.coordinates?.lat;
+                    const lng = restaurant.address?.coordinates?.lng;
 
-                    const addressString = restaurant.address ? `${restaurant.address.street}, ${restaurant.address.city}` : "Address not available";
-                    const imageUrl = restaurant.images?.[0] || "/images/restaurants/default.jpg";
-                    const menuCount = restaurant.menu?.length ?? 0;
+                    if (!lat || !lng) return null; // skip if no coordinates
 
                     return (
                         <Marker key={restaurant._id} position={[lat, lng]}>
                             <Popup>
                                 <div className="p-2 min-w-[200px]">
                                     <h3 className="font-bold text-lg mb-2">{restaurant.name}</h3>
-                                    <img src={imageUrl} alt={restaurant.name} className="w-full h-20 object-cover rounded mb-2" />
-                                    <p className="text-sm text-gray-600 mb-2">{addressString}</p>
+                                    <img
+                                        src={restaurant.images?.[0] || restaurant.image || '/images/food-placeholder.jpg'}
+                                        alt={restaurant.name}
+                                        className="w-full h-20 object-cover rounded mb-2"
+                                        onError={(e) => {
+                                            e.currentTarget.src = '/images/food-placeholder.jpg';
+                                        }}
+                                    />
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {restaurant.address?.street}, {restaurant.address?.city}
+                                    </p>
                                     <p className="text-sm mb-2">Rating: {restaurant.rating} ⭐</p>
-                                    <p className="text-sm mb-3">{menuCount} menu items</p>
-                                    <a href={`/restaurants/${restaurant._id}`} className="block bg-primary text-white px-3 py-1 rounded text-sm text-center hover:bg-orange-600">
+                                    <p className="text-sm mb-3">
+                                        {restaurant.menu?.length ?? 0} menu items
+                                    </p>
+                                    <a
+                                        href={`/restaurants/${restaurant._id}`}
+                                        className="block bg-primary text-white px-3 py-1 rounded text-sm text-center hover:bg-orange-600"
+                                    >
                                         View Menu
                                     </a>
                                 </div>
@@ -206,5 +217,4 @@ const FoodMap: React.FC<FoodMapProps> = ({ restaurants }) => {
         </div>
     );
 };
-
 export default FoodMap;
