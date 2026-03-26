@@ -56,7 +56,6 @@
 
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Define interfaces for better TypeScript support
 interface ICartItem {
     foodItem: mongoose.Types.ObjectId;
     quantity: number;
@@ -119,11 +118,9 @@ const cartSchema = new Schema<ICart>(
     }
 );
 
-// Pre-save middleware: calculate total amount before saving
-cartSchema.pre('save', function (next) {
-    const doc = this as ICart; // ✅ Type assertion to avoid TypeScript error
-    const total = doc.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    doc.totalAmount = total;
+cartSchema.pre('save', function (this: any, next: any) {
+    const total = this.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+    this.totalAmount = total;
     next();
 });
 
