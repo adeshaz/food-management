@@ -119,11 +119,11 @@ const cartSchema = new Schema<ICart>(
     }
 );
 
-// ✅ Pre-save middleware with proper typing
-cartSchema.pre('save', function (this: ICart, next: (err?: any) => void) {
-    // Calculate total amount from items
-    const total = this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    this.totalAmount = total;
+// Pre-save middleware: calculate total amount before saving
+cartSchema.pre('save', function (next) {
+    const doc = this as ICart; // ✅ Type assertion to avoid TypeScript error
+    const total = doc.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    doc.totalAmount = total;
     next();
 });
 
